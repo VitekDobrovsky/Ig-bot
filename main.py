@@ -2,20 +2,28 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import urllib.request
-import os
-import glob
+from moviepy.editor import *
 
-reelUrl = []
+# TODO:
+# meantion author in descriptions
+# call download when run out of videos
+
+# selenium init
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("user-data-dir=/home/server/.config/google-chrome/")
 driver = webdriver.Chrome(options=chrome_options)
 
+reelUrl = []
 
 def unsaveAndDownload(num):
+    
+    # find post in your saved collection
     driver.get('https://www.instagram.com/vitek.dobrovsky/saved/all-posts/')
     sleep(4)
     div = driver.find_elements(by=By.XPATH, value='//div[@class="_aabd _aa8k  _al3l"]')
     div[0].find_element(by=By.TAG_NAME, value='a').click()
+
+    # unsave videos and save URL to list
     for i in range(num):
         sleep(2)
         reelUrl.append(driver.current_url)
@@ -26,30 +34,22 @@ def unsaveAndDownload(num):
         else:
             index = 2
         driver.find_element(by=By.XPATH, value=f'(//button[@class="_abl-"])[{str(index)}]').click()
+    
+    print('-------URLs COLLECTED-------')
+    # download videos
     download(reelUrl)
 
-
-def deepHtmlLinks(links):
-    newLinks = []
-    for link in links:
-        newLink = link + '?__a=1&__d=1'
-        newLinks.append(newLink)
-    
-    return newLinks
-
-def deleteAll():
-    files = glob.glob('videos/*')
-    for f in files:
-        os.remove(f)
-
 def download(reelUrl):
+
+    # get to ig source page
     reelUrl = deepHtmlLinks(reelUrl)
-    print(reelUrl)
-    print('-----------------------')
-    index = 91
+
+    index = 0
     for link in reelUrl:
         driver.get(link)
         sleep(4)
+
+        # finding video source URL and downloading it
         text = driver.find_element(by=By.XPATH, value='//pre').get_attribute("innerHTML")
         text = str(text)
         try:
@@ -59,9 +59,49 @@ def download(reelUrl):
             downloadUrl = text.replace('amp;', '')
             urllib.request.urlretrieve(downloadUrl, f'videos/{str(index)}.mp4')
             index += 1
-            print(link, ' -done')
+            print(f'done - {link}')
         except:
-            print(f'error - {index}')
+            print(f'error - {link}')
+    
+    print('-------DOWNLOADED-------')
+
+def edit():
+    rawPath = 'raw/'
+    editedPath = 'edited/'
+        
+    for name in os.listdir(rawPath):
+        # complete locations
+        fullRawPath = rawPath + name
+        fullEditedPath = editedPath + name
+
+        # import (from raw)
+        video = VideoFileClip(fullRawPath)
+        audio = video.audio
+
+        # adding potato and audio
+        potato = ImageClip("sources/potato.png").set_start(0).set_duration(video.duration).set_pos(("left","center")).resize(height=130)      
+        potato = potato.fx( vfx.colorx, 0.5)
+        final = CompositeVideoClip([video, potato])
+        sound = AudioFileClip('sources/boom.mp3').set_start(0)
+
+        new_audio = CompositeAudioClip([audio, sound])
+        final.audio = new_audio
+
+        # export (to edited)
+        final.write_videofile(fullEditedPath)
+
+    print('-------EDITED-------')
+
+def deepHtmlLinks(links):
+    
+    # getting link to IG source code
+    newLinks = []
+    for link in links:
+        newLink = link + '?__a=1&__d=1'
+        newLinks.append(newLink)
+    
+    return newLinks
 
 
 unsaveAndDownload(34)
+edit()

@@ -6,11 +6,7 @@ from pynput.keyboard import Key, Controller
 import os
 from random import randint
 
-        # KSYZ BUDE CAS TAK TO STEJNE NA TIKTOK A STRIDAT TO 4KRAT
-        # ADD CUSTOM CAPTIONS (after month)
-        # AUTOMAICLY RUN DOWNLOAD SCRIPT IF RUN OUT OF VIDS
-
-#sleep(randint(59, 3539)
+sleep(randint(59, 3539))
 
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("user-data-dir=/home/server/.config/google-chrome/")
