@@ -3,10 +3,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import urllib.request
 from moviepy.editor import *
+import glob
 
 # TODO:
 # meantion author in descriptions
 # call download when run out of videos
+
 
 # selenium init
 chrome_options = webdriver.ChromeOptions()
@@ -102,6 +104,16 @@ def deepHtmlLinks(links):
     
     return newLinks
 
+def deleteAll(path):
+    dir = path
+    filelist = glob.glob(os.path.join(dir, "*"))
+    for f in filelist:
+        os.remove(f)
 
-unsaveAndDownload(34)
-edit()
+# call functions
+def run():
+    deleteAll('raw/')
+    unsaveAndDownload(120)
+    edit()
+
+run()
